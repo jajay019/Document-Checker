@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KI-Dokumenten-Checker</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+  .container { max-width: 800px; margin: 50px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
+  textarea { width: 100%; height: 200px; padding: 10px; font-size: 16px; margin-bottom: 10px; }
+  button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+  .results { margin-top: 20px; background: #eef; padding: 10px; border-radius: 6px; }
+  .result-item { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>KI-Dokumenten-Checker</h1>
+  <textarea id="textInput" placeholder="Füge hier dein Dokument ein..."></textarea>
+  <button onclick="checkDocument()">Dokument prüfen</button>
+  <div class="results" id="results"></div>
+</div>
+
+<script>
+function checkDocument() {
+  const text = document.getElementById('textInput').value.trim();
+  const resultsDiv = document.getElementById('results');
+  resultsDiv.innerHTML = '';
+
+  if (!text) {
+    resultsDiv.innerHTML = '<div class="result-item">Bitte Text eingeben.</div>';
+    return;
+  }
+
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  const words = text.split(/\s+/);
+  const wordCount = words.length;
+  const sentenceCount = sentences.length;
+
+  // 1. Lesbarkeit (Satzlänge)
+  const avgSentenceLength = (wordCount / sentenceCount).toFixed(1);
+  const readability = avgSentenceLength > 20 ? "Lang und schwer verständlich" : "Gut verständlich";
+
+  // 2. Wiederholungen
+  const wordFreq = {};
+  words.forEach(w => {
+    const word = w.toLowerCase().replace(/[^a-zäöüß]/g,'');
+    if(word.length > 2){
+      wordFreq[word] = (wordFreq[word] || 0) + 1;
+    }
+  });
+  const repeatedWords = Object.keys(wordFreq).filter(w => wordFreq[w] > 3);
+
+  // 3. Füllwörter prüfen
+  const fillerWords = ['eigentlich','wirklich','sehr','halt','irgendwie','doch','einfach'];
+  const foundFiller = fillerWords.filter(fw => text.toLowerCase().includes(fw));
+
+  // Ausgabe
+  resultsDiv.innerHTML += `<div class="result-item"><strong>Wortanzahl:</strong> ${wordCount}</div>`;
+  resultsDiv.innerHTML += `<div class="result-item"><strong>Satzanzahl:</strong> ${sentenceCount}</div>`;
+  resultsDiv.innerHTML += `<div class="result-item"><strong>Durchschnittliche Satzlänge:</strong> ${avgSentenceLength} Wörter → ${readability}</div>`;
+
+  if (repeatedWords.length > 0) {
+    resultsDiv.innerHTML += `<div class="result-item"><strong>Wiederholte Wörter:</strong> ${repeatedWords.join(', ')}</div>`;
+  } else {
+    resultsDiv.innerHTML += `<div class="result-item">Keine auffälligen Wiederholungen gefunden.</div>`;
+  }
+
+  if (foundFiller.length > 0) {
+    resultsDiv.innerHTML += `<div class="result-item"><strong>Füllwörter:</strong> ${foundFiller.join(', ')}</div>`;
+  } else {
+    resultsDiv.innerHTML += `<div class="result-item">Keine Füllwörter gefunden.</div>`;
+  }
+
+  // Vorschlag
+  resultsDiv.innerHTML += `<div class="result-item"><em>Hinweis: Kürze Sätze und entferne unnötige Wörter für bessere Lesbarkeit.</em></div>`;
+}
+</script>
+</body>
+</html>
